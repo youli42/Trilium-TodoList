@@ -221,10 +221,29 @@ async function runBackendAction(action, payload) {
                 scope: rn.getLabelValue('scope') || "",
                 refreshInterval: parseInt(rn.getLabelValue('refreshInterval')) || 30,
                 historyRetention: parseInt(rn.getLabelValue('historyRetention')) || 0,
-                showOverdueFirst: rn.getLabelValue('showOverdueFirst') === 'true'
+                showOverdueFirst: rn.getLabelValue('showOverdueFirst') === 'true',
+                hideArchived: rn.getLabelValue('hideArchived') === 'true'
             };
         }
-        if (backendAction === "fetchTasks") return fetch(backendPayload);
+        if (backendAction === "fetchTasks") {
+            var result = fetch(backendPayload);
+            if (result && result.tasks && backendPayload && backendPayload.hideArchived) {
+                function checkArchived(nid, cache) {
+                    if (!nid || cache[nid] !== undefined) return cache[nid];
+                    var n = api.getNote(nid);
+                    if (!n) { cache[nid] = false; return false; }
+                    if (n.getLabelValue('archived') === 'true') { cache[nid] = true; return true; }
+                    var ps = n.getParentNotes();
+                    for (var pi = 0; pi < ps.length; pi++) {
+                        if (checkArchived(ps[pi].noteId, cache)) { cache[nid] = true; return true; }
+                    }
+                    cache[nid] = false; return false;
+                }
+                var cache = {};
+                result.tasks = result.tasks.filter(function(t) { return !checkArchived(t.noteId, cache); });
+            }
+            return result;
+        }
         if (backendAction === "completeTask") return complete(backendPayload.task, backendPayload.settings);
         if (backendAction === "uncompleteTask") return uncomplete(backendPayload.task);
         throw new Error("Unknown action: " + backendAction);
@@ -319,7 +338,7 @@ async function loadTasks() {
         try {
             var cfg = await readConfig();
             var scope = cfg.scope ? cfg.scope.split(/\s+/).filter(Boolean) : [];
-            var result = await runBackendAction("fetchTasks", { rootNoteIds: scope });
+            var result = await runBackendAction("fetchTasks", { rootNoteIds: scope, hideArchived: cfg.hideArchived });
             if (!result || result.emptyScope) { taskData = []; return []; }
             taskData = (result.tasks) || [];
             return taskData;

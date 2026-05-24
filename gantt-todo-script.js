@@ -325,7 +325,8 @@ function cacheDom() {
         completedPagination: document.getElementById("completed-pagination"),
         completedSection: document.getElementById("completed-tasks-section"),
         
-        pendingHeaders: document.querySelectorAll("#pending-tasks-table th[data-sort]")
+        pendingHeaders: document.querySelectorAll("#pending-tasks-table th[data-sort]"),
+        completedHeaders: document.querySelectorAll("#completed-tasks-table th[data-sort]")
     };
 }
 
@@ -590,6 +591,7 @@ function handleSortClick(th) {
     else { sortField = field; sortAsc = true; }
     pendingPage = 1; completedPage = 1;
     dom.pendingHeaders.forEach(function(h) { h.classList.remove("is-sorted"); var a = h.querySelector(".sort-arrow"); if (a) a.textContent = ""; });
+    dom.completedHeaders.forEach(function(h) { h.classList.remove("is-sorted"); var a = h.querySelector(".sort-arrow"); if (a) a.textContent = ""; });
     th.classList.add("is-sorted");
     var a = th.querySelector(".sort-arrow");
     if (a) a.textContent = sortAsc ? " ▲" : " ▼";
@@ -623,6 +625,7 @@ function init() {
     dom.searchBtn.addEventListener("click", doSearch);
     dom.searchInput.addEventListener("keydown", function(e) { if (e.key === "Enter") doSearch(); });
     dom.pendingHeaders.forEach(function(th) { th.addEventListener("click", function() { handleSortClick(th); }); });
+    dom.completedHeaders.forEach(function(th) { th.addEventListener("click", function() { handleSortClick(th); }); });
     dom.pendingBody.addEventListener("change", function(e) { var cb = e.target.closest("input[type=\"checkbox\"][data-action]"); if (cb) handleCheckboxChange(cb); });
     dom.completedBody.addEventListener("change", function(e) { var cb = e.target.closest("input[type=\"checkbox\"][data-action]"); if (cb) handleCheckboxChange(cb); });
     function handleNoteClick(el) { var nid = el.dataset.noteId; if (nid && api && typeof api.activateNote === "function") api.activateNote(nid); }

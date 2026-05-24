@@ -602,13 +602,13 @@
         <table class="gantt-todo-table" id="completed-tasks-table">
           <thead>
             <tr>
-              <th class="col-index">#</th>
-              <th class="col-check">状态</th>
-<th class="col-content">任务内容</th>
-            <th class="col-note">所属笔记</th>
-            <th class="col-priority">优先级</th>
-              <th class="col-date">开始时间</th>
-              <th class="col-date">截止时间</th>
+              <th class="col-index" data-sort="index"># <span class="sort-arrow"></span></th>
+              <th class="col-check" data-sort="done">状态</th>
+<th class="col-content" data-sort="text">任务内容 <span class="sort-arrow"></span></th>
+            <th class="col-note" data-sort="noteTitle">所属笔记 <span class="sort-arrow"></span></th>
+            <th class="col-priority" data-sort="priority">优先级 <span class="sort-arrow"></span></th>
+              <th class="col-date" data-sort="startDate">开始时间 <span class="sort-arrow"></span></th>
+              <th class="col-date" data-sort="endDate">截止时间 <span class="sort-arrow"></span></th>
             </tr>
           </thead>
           <tbody id="completed-tasks-body"></tbody>

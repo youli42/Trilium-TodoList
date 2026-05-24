@@ -374,6 +374,21 @@ function renderGantt() {
                 on_view_change: function(mode) { currentView = mode; },
                 language: "zh"
             });
+            setTimeout(function() {
+                var svg = container.querySelector("svg");
+                if (!svg) return;
+                var hl = svg.querySelector(".today-highlight");
+                var x = hl ? parseFloat(hl.getAttribute("x")) : NaN;
+                if (!isNaN(x) && x > 0) {
+                    var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute("x1", x); line.setAttribute("y1", "0");
+                    line.setAttribute("x2", x);
+                    line.setAttribute("y2", svg.getAttribute("height") || "300");
+                    line.setAttribute("stroke", "rgba(66,133,244,0.7)");
+                    line.setAttribute("stroke-width", "2");
+                    svg.insertBefore(line, svg.firstChild);
+                }
+            }, 50);
         } catch (err) { console.error("[GanttTodo] Gantt failed:", err); container.innerHTML = "<div class=\"gantt-todo-error\">甘特图渲染失败</div>"; }
     }).catch(function(err) { console.error("[GanttTodo] Frappe Gantt load failed:", err); container.innerHTML = "<div class=\"gantt-todo-error\">甘特图库加载失败</div>"; });
 }

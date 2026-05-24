@@ -411,10 +411,28 @@ async function renderGantt() {
     if (filterNote !== "all") sourceTasks = sourceTasks.filter(function(t) { return t.noteId === filterNote; });
     if (sortBy) {
         sourceTasks = sourceTasks.slice().sort(function(a, b) {
-            if (sortBy === "priority-desc") return (a.priority || 99) - (b.priority || 99);
-            if (sortBy === "priority-asc") return (b.priority || 99) - (a.priority || 99);
-            if (sortBy === "startDate") return (a.startDate || "").localeCompare(b.startDate || "");
-            if (sortBy === "endDate") return (a.endDate || "").localeCompare(b.endDate || "");
+            if (sortBy === "priority-desc") {
+                var pa = a.priority != null ? a.priority : 99;
+                var pb = b.priority != null ? b.priority : 99;
+                return pa - pb;
+            }
+            if (sortBy === "priority-asc") {
+                var pa = a.priority != null ? a.priority : 99;
+                var pb = b.priority != null ? b.priority : 99;
+                return pb - pa;
+            }
+            if (sortBy === "startDate") {
+                if (!a.startDate && !b.startDate) return 0;
+                if (!a.startDate) return 1;
+                if (!b.startDate) return -1;
+                return a.startDate.localeCompare(b.startDate);
+            }
+            if (sortBy === "endDate") {
+                if (!a.endDate && !b.endDate) return 0;
+                if (!a.endDate) return 1;
+                if (!b.endDate) return -1;
+                return a.endDate.localeCompare(b.endDate);
+            }
             return 0;
         });
     }

@@ -232,7 +232,8 @@ async function runBackendAction(action, payload) {
                     if (!nid || cache[nid] !== undefined) return cache[nid];
                     var n = api.getNote(nid);
                     if (!n) { cache[nid] = false; return false; }
-                    if (n.getLabelValue('archived') === 'true') { cache[nid] = true; return true; }
+                    var archivedVal = n.getLabelValue('archived');
+                    if (archivedVal === 'true' || archivedVal === '') { cache[nid] = true; return true; }
                     var ps = n.getParentNotes();
                     for (var pi = 0; pi < ps.length; pi++) {
                         if (checkArchived(ps[pi].noteId, cache)) { cache[nid] = true; return true; }

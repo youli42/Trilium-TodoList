@@ -344,7 +344,8 @@ function renderGantt() {
         if (!start && end) { var d = new Date(end); d.setDate(d.getDate() - 1); start = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
         if (start && !end) end = start;
         if (!start || !end) return null;
-        return { id: t.noteId + "-" + t.taskIndexInNote, name: t.text || "(empty)", start: start + "T00:00:00", end: end + "T23:59:00", progress: t.done ? 100 : 0, dependencies: "", custom_class: t.done ? "gantt-task-complete" : "" };
+        var barName = (t.priority ? "[P" + t.priority + "] " : "") + (t.text || "(empty)") + (t.noteTitle ? " \u00b7 " + t.noteTitle : "");
+return { id: t.noteId + "-" + t.taskIndexInNote, name: barName, start: start + "T00:00:00", end: end + "T23:59:00", progress: t.done ? 100 : 0, dependencies: "", custom_class: t.done ? "gantt-task-complete" : "" };
     }).filter(Boolean);
     if (ganttTasks.length === 0) {
         container.innerHTML = "<div class=\"gantt-todo-empty\">没有带日期的任务</div>";

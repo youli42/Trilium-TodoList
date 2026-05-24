@@ -194,6 +194,21 @@ async function runBackendAction(action, payload) {
             r.note.setContent(r.$.html());
             return { success: true, noteId: r.note.noteId };
         }
+        if (backendAction === "readConfig") {
+            var curNote = api.currentNote || (api.startNote && api.startNote());
+            var myId = curNote ? curNote.noteId : "";
+            var parents = curNote ? curNote.getParentNotes() : [];
+            var tmplId = parents && parents.length > 0 ? parents[0].noteId : "";
+            var renderNotes = tmplId ? api.searchForNotes('~renderNote = "' + tmplId + '"') : [];
+            var rn = renderNotes && renderNotes.length > 0 ? renderNotes[0] : null;
+            if (!rn) return { scope: "", refreshInterval: 30, historyRetention: 0, showOverdueFirst: true };
+            return {
+                scope: rn.getLabelValue('scope') || "",
+                refreshInterval: parseInt(rn.getLabelValue('refreshInterval')) || 30,
+                historyRetention: parseInt(rn.getLabelValue('historyRetention')) || 0,
+                showOverdueFirst: rn.getLabelValue('showOverdueFirst') === 'true'
+            };
+        }
         if (backendAction === "fetchTasks") return fetch(backendPayload);
         if (backendAction === "completeTask") return complete(backendPayload.task, backendPayload.settings);
         if (backendAction === "uncompleteTask") return uncomplete(backendPayload.task);
@@ -201,8 +216,16 @@ async function runBackendAction(action, payload) {
     }, [action, payload]);
 }
 
-var STORAGE_KEY = "gantt_todo_settings_v1";
-var DEFAULT_SETTINGS = { scope: "", refreshInterval: 30, historyRetention: 0, showOverdueFirst: true };
+var CACHED_CONFIG = null;
+
+async function readConfig() {
+    if (CACHED_CONFIG) return CACHED_CONFIG;
+    try {
+        var cfg = await runBackendAction("readConfig", {});
+        CACHED_CONFIG = cfg;
+        return cfg;
+    } catch (e) { return { scope: "", refreshInterval: 30, historyRetention: 0, showOverdueFirst: true }; }
+}
 var SORT_COLUMNS = {
     index: { get: function(t) { return t.taskIndexInNote || 0; } },
     text: { get: function(t) { return (t.text || "").toLowerCase(); } },
@@ -219,10 +242,7 @@ function todayStr() { var d = new Date(); return d.getFullYear() + "-" + String(
 function escHtml(s) { if (s == null) return ""; var div = document.createElement("div"); div.textContent = String(s); return div.innerHTML; }
 function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
 
-function readSettings() {
-    try { var raw = localStorage.getItem(STORAGE_KEY); return raw ? Object.assign({}, DEFAULT_SETTINGS, JSON.parse(raw)) : Object.assign({}, DEFAULT_SETTINGS); } catch (e) { return Object.assign({}, DEFAULT_SETTINGS); }
-}
-function writeSettings(s) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch (e) {} }
+
 
 var taskData = null;
 var currentTab = "gantt";
@@ -260,12 +280,7 @@ function cacheDom() {
         completedBody: document.getElementById("completed-tasks-body"),
         completedPagination: document.getElementById("completed-pagination"),
         completedSection: document.getElementById("completed-tasks-section"),
-        settingScope: document.getElementById("setting-scope"),
-        settingRefresh: document.getElementById("setting-refresh"),
-        settingHistory: document.getElementById("setting-history"),
-        settingShowOverdue: document.getElementById("setting-show-overdue"),
-        settingsSaveBtn: document.getElementById("settings-save-btn"),
-        settingsSavedMsg: document.getElementById("settings-saved-msg"),
+        
         pendingHeaders: document.querySelectorAll("#pending-tasks-table th[data-sort]")
     };
 }
@@ -286,8 +301,8 @@ async function loadTasks() {
     isLoading = true;
     var promise = (async function() {
         try {
-            var settings = readSettings();
-            var scope = settings.scope ? settings.scope.split(/\s+/).filter(Boolean) : [];
+            var cfg = await readConfig();
+            var scope = cfg.scope ? cfg.scope.split(/\s+/).filter(Boolean) : [];
             var result = await runBackendAction("fetchTasks", { rootNoteIds: scope });
             if (!result || result.emptyScope) { taskData = []; return []; }
             taskData = (result.tasks) || [];
@@ -298,7 +313,7 @@ async function loadTasks() {
     return promise;
 }
 
-async function doCompleteTask(task) { return runBackendAction("completeTask", { task: task, settings: readSettings() }); }
+async function doCompleteTask(task) { return runBackendAction("completeTask", { task: task, settings: await readConfig() }); }
 async function doUncompleteTask(task) { return runBackendAction("uncompleteTask", { task: task }); }
 
 function showEmptyScopeMessage() {
@@ -338,7 +353,7 @@ function switchTab(tab) {
     currentTab = tab;
     dom.tabs.forEach(function(btn) { btn.classList.toggle("is-active", btn.dataset.tab === tab); });
     dom.panels.forEach(function(panel) { panel.classList.toggle("is-active", panel.dataset.panel === tab); });
-    if (tab === "gantt") { populateGanttFilters(); renderGantt(); } else if (tab === "list") { renderTaskList(); } else if (tab === "settings") renderSettings();
+    if (tab === "gantt") { populateGanttFilters(); renderGantt(); } else if (tab === "list") { renderTaskList(); }
 }
 
 function refreshStats() {
@@ -348,9 +363,9 @@ function refreshStats() {
     }
 }
 
-function renderGantt() {
-    var settings = readSettings();
-    if (!settings.scope && (!taskData || !taskData.length)) { showEmptyScopeMessage(); return; }
+async function renderGantt() {
+    var settings = await readConfig();
+    if (!cfg.scope && (!taskData || !taskData.length)) { showEmptyScopeMessage(); return; }
     if (!taskData) return;
     var container = dom.ganttContainer, statsEl = dom.ganttStats;
     var hideDone = document.getElementById("gantt-hide-done") ? document.getElementById("gantt-hide-done").checked : false;
@@ -420,9 +435,9 @@ function setGanttView(view) {
     else renderGantt();
 }
 
-function renderTaskList() {
-    var settings = readSettings();
-    if (!settings.scope && (!taskData || !taskData.length)) { showEmptyScopeMessage(); return; }
+async function renderTaskList() {
+    var settings = await readConfig();
+    if (!cfg.scope && (!taskData || !taskData.length)) { showEmptyScopeMessage(); return; }
     if (!taskData) return;
     var filtered = taskData;
     if (searchQuery) { var q = searchQuery.toLowerCase(); filtered = taskData.filter(function(t) { return (t.text || "").toLowerCase().indexOf(q) >= 0; }); }
@@ -523,26 +538,12 @@ function handleSortClick(th) {
     renderTaskList();
 }
 
-function renderSettings() {
-    var s = readSettings();
-    dom.settingScope.value = s.scope || "";
-    dom.settingRefresh.value = s.refreshInterval || 30;
-    dom.settingHistory.value = s.historyRetention || 0;
-    dom.settingShowOverdue.checked = s.showOverdueFirst !== false;
-    dom.settingsSavedMsg.classList.remove("show");
-}
 
-function saveSettings() {
-    var s = { scope: (dom.settingScope.value || "").trim(), refreshInterval: clamp(parseInt(dom.settingRefresh.value, 10) || 30, 5, 3600), historyRetention: clamp(parseInt(dom.settingHistory.value, 10) || 0, 0, 9999), showOverdueFirst: dom.settingShowOverdue.checked };
-    writeSettings(s);
-    dom.settingsSavedMsg.classList.add("show");
-    setTimeout(function() { dom.settingsSavedMsg.classList.remove("show"); }, 2000);
-    reloadAll();
-}
 
 function startAutoRefresh() {
     if (autoRefreshTimer) { clearInterval(autoRefreshTimer); autoRefreshTimer = null; }
-    var iv = (readSettings().refreshInterval || 30) * 1000;
+    var cfg2 = CACHED_CONFIG || { refreshInterval: 30 };
+    var iv = (cfg2.refreshInterval || 30) * 1000;
     if (iv < 5000) return;
     autoRefreshTimer = setInterval(function() { if (currentTab !== "settings") reloadAll(); }, iv);
 }
@@ -569,7 +570,7 @@ function init() {
     function handleNoteClick(el) { var nid = el.dataset.noteId; if (nid && api && typeof api.activateNote === "function") api.activateNote(nid); }
     dom.pendingBody.addEventListener("click", function(e) { var el = e.target.closest(".gantt-todo-task-text, .col-note"); if (el) { if (el.classList.contains("col-note")) handleNoteClick(el); else handleTaskTextClick(el); } });
     dom.completedBody.addEventListener("click", function(e) { var el = e.target.closest(".gantt-todo-task-text, .col-note"); if (el) { if (el.classList.contains("col-note")) handleNoteClick(el); else handleTaskTextClick(el); } });
-    dom.settingsSaveBtn.addEventListener("click", saveSettings);
+    
     var hideCb = document.getElementById("gantt-hide-done");
     if (hideCb) {
         hideCb.checked = localStorage.getItem("gantt_hide_done") === "true";
@@ -582,11 +583,10 @@ function init() {
     var sortSel = document.getElementById("gantt-sort-by");
     if (filterNoteSel) filterNoteSel.addEventListener("change", function() { if (currentTab === "gantt") renderGantt(); });
     if (sortSel) sortSel.addEventListener("change", function() { if (currentTab === "gantt") renderGantt(); });
-    renderSettings();
-    loadTasks().then(function() {
+    loadTasks().then(async function() {
         populateGanttFilters();
-        var s = readSettings();
-        if (!s.scope && (!taskData || !taskData.length)) showEmptyScopeMessage();
+        var cfg = await readConfig();
+        if (!cfg.scope && (!taskData || !taskData.length)) showEmptyScopeMessage();
         else { renderGantt(); if (currentTab === "list") renderTaskList(); }
     }).catch(function(err) { console.error("[GanttTodo] Init failed:", err); dom.ganttContainer.innerHTML = "<div class=\"gantt-todo-error\">" + escHtml(err.message || "未知错误") + "</div>"; });
     startAutoRefresh();

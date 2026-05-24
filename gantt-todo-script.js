@@ -326,53 +326,6 @@ function refreshStats() {
     }
 }
 
-function drawTodayLine(container) {
-    var svg = container ? container.querySelector("svg") : null;
-    if (!svg) return;
-    var old = svg.querySelector(".gantt-today-line");
-    if (old) old.remove();
-    var x = NaN;
-    var hl = svg.querySelector(".today-highlight");
-    if (hl) x = parseFloat(hl.getAttribute("x"));
-    if (isNaN(x) || x <= 0) {
-        var ticks = svg.querySelectorAll(".tick");
-        if (ticks.length >= 2) {
-            var fX = parseFloat(ticks[0].getAttribute("x"));
-            var lX = parseFloat(ticks[ticks.length - 1].getAttribute("x"));
-            if (!isNaN(fX) && !isNaN(lX) && lX > fX) {
-                var now = new Date(), idx = -1, n = ticks.length;
-                if (currentView === "Year") { var sy = new Date(now.getFullYear(),0,0); idx = Math.floor((now - sy) / 86400000) - 1; }
-                else if (currentView === "Month") idx = now.getDate() - 1;
-                else if (currentView === "Week") { var d = now.getDay(); idx = d === 0 ? 6 : d - 1; }
-                else {
-                    var dayNum = now.getDate();
-                    for (var i = 0; i < n; i++) {
-                        var m = (ticks[i].textContent || "").match(/\d+/g);
-                        if (m) { for (var j = 0; j < m.length; j++) {
-                            if (parseInt(m[j], 10) === dayNum) { idx = i; break; }
-                        }}
-                        if (idx >= 0) break;
-                    }
-                }
-                if (idx >= 0 && idx < n) {
-                    x = fX + (idx / (n - 1)) * (lX - fX);
-                }
-            }
-        }
-    }
-    if (!isNaN(x) && x > 0) {
-        var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", x); line.setAttribute("y1", "0");
-        line.setAttribute("x2", x);
-        line.setAttribute("y2", svg.getAttribute("height") || "300");
-        line.setAttribute("stroke", "rgba(66,133,244,0.7)");
-        line.setAttribute("stroke-width", "2");
-        line.setAttribute("class", "gantt-today-line");
-        svg.insertBefore(line, svg.firstChild);
-    }
-}
-}
-
 function renderGantt() {
     var settings = readSettings();
     if (!settings.scope && (!taskData || !taskData.length)) { showEmptyScopeMessage(); return; }
@@ -418,13 +371,9 @@ function renderGantt() {
                         doUncompleteTask(src).then(function() { src.done = false; refreshStats(); }).catch(function(err) { console.error("[GanttTodo] Uncomplete failed:", err); });
                     }
                 },
-                on_view_change: function(mode) {
-                    currentView = mode;
-                    setTimeout(function() { drawTodayLine(container); }, 50);
-                },
+                on_view_change: function(mode) { currentView = mode; },
                 language: "zh"
             });
-            drawTodayLine(container);
         } catch (err) { console.error("[GanttTodo] Gantt failed:", err); container.innerHTML = "<div class=\"gantt-todo-error\">甘特图渲染失败</div>"; }
     }).catch(function(err) { console.error("[GanttTodo] Frappe Gantt load failed:", err); container.innerHTML = "<div class=\"gantt-todo-error\">甘特图库加载失败</div>"; });
 }
@@ -432,7 +381,8 @@ function renderGantt() {
 function setGanttView(view) {
     currentView = view;
     dom.ganttViewBtns.forEach(function(btn) { btn.classList.toggle("is-active", btn.dataset.view === view); });
-    renderGantt();
+    if (ganttInstance && typeof ganttInstance.change_view_mode === "function") ganttInstance.change_view_mode(view);
+    else renderGantt();
 }
 
 function renderTaskList() {

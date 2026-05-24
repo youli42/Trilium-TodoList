@@ -201,20 +201,17 @@ async function runBackendAction(action, payload) {
             var p = sn.getParentNotes();
             var tmpl = p && p.length > 0 ? p[0] : null;
             if (!tmpl) return { scope: "", refreshInterval: 30, historyRetention: 0, showOverdueFirst: true };
-            var tmplId = tmpl.noteId;
-            /* Find render note by checking siblings of template that have ~renderNote → template */
-            var rn = null;
+            /* Template is child of render note: get grandparent = render note */
             var gp = tmpl.getParentNotes();
-            var grandparent = gp && gp.length > 0 ? gp[0] : null;
-            if (grandparent) {
-                var siblings = grandparent.getChildNotes();
-                for (var si = 0; si < siblings.length; si++) {
-                    var rels = siblings[si].getRelations();
-                    for (var ri = 0; ri < rels.length; ri++) {
-                        if (rels[ri].name === "renderNote" && rels[ri].value === tmplId) {
-                            rn = siblings[si];
-                            break;
-                        }
+            var rn = gp && gp.length > 0 ? gp[0] : null;
+            if (!rn) return { scope: "", refreshInterval: 30, historyRetention: 0, showOverdueFirst: true };
+            return {
+                scope: rn.getLabelValue('scope') || "",
+                refreshInterval: parseInt(rn.getLabelValue('refreshInterval')) || 30,
+                historyRetention: parseInt(rn.getLabelValue('historyRetention')) || 0,
+                showOverdueFirst: rn.getLabelValue('showOverdueFirst') === 'true'
+            };
+        }
                     }
                     if (rn) break;
                 }

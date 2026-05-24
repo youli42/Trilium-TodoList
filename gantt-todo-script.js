@@ -432,8 +432,7 @@ function renderGantt() {
 function setGanttView(view) {
     currentView = view;
     dom.ganttViewBtns.forEach(function(btn) { btn.classList.toggle("is-active", btn.dataset.view === view); });
-    if (ganttInstance && typeof ganttInstance.change_view_mode === "function") ganttInstance.change_view_mode(view);
-    else renderGantt();
+    renderGantt();
 }
 
 function renderTaskList() {

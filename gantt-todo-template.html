@@ -133,6 +133,18 @@
     background: rgba(128,128,128,0.12);
     border-color: rgba(128,128,128,0.35);
   }
+  .gantt-todo-gantt-controls label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    opacity: 0.6;
+    cursor: pointer;
+    user-select: none;
+    margin-left: 8px;
+  }
+  .gantt-todo-gantt-controls label:hover { opacity: 1; }
+  .gantt-todo-gantt-controls input[type="checkbox"] { width: 14px; height: 14px; }
 
   .gantt-todo-gantt-stats {
     font-size: 12px;
@@ -243,6 +255,15 @@
     min-width: 160px;
   }
 
+  .gantt-todo-table .col-note {
+    min-width: 100px;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    opacity: 0.7;
+    font-size: 12px;
+  }
   .gantt-todo-table .col-priority {
     width: 50px;
     text-align: center;
@@ -407,12 +428,16 @@
   .gantt-todo-pagination select {
     font-size: 12px;
     padding: 3px 6px;
-    border: 1px solid rgba(128,128,128,0.2);
+    border: 1px solid rgba(128,128,128,0.25);
     border-radius: 4px;
-    background: transparent;
-    color: inherit;
+    background: var(--main-background-color);
+    color: var(--main-text-color);
     font-family: inherit;
     cursor: pointer;
+  }
+  .gantt-todo-page-size option {
+    background: var(--main-background-color);
+    color: var(--main-text-color);
   }
 
   /* ===== Settings View ===== */
@@ -531,7 +556,7 @@
   .gantt .grid-row:nth-child(even) { fill: rgba(128,128,128,0.03); }
   .gantt .row-line { stroke: var(--main-border-color); stroke-opacity: 0.3; }
   .gantt .tick { stroke: var(--main-border-color); stroke-opacity: 0.15; }
-  .gantt .today-highlight { fill: rgba(220,76,62,0.2); }
+  .gantt .today-highlight { fill: rgba(66,133,244,0.15); stroke: rgba(66,133,244,0.6); stroke-width: 2px; }
   .gantt .bar { fill: #dc4c3e; transition: fill 0.15s; }
   .gantt .bar-progress { fill: #c93d2f; }
   .gantt .bar-label { font-size: 11px; fill: #fff; font-weight: 500; }
@@ -572,6 +597,7 @@
         <button data-view="Week">周</button>
         <button data-view="Month">月</button>
         <button data-view="Year">年</button>
+        <label><input type="checkbox" id="gantt-hide-done"> 隐藏已完成</label>
       </div>
     </div>
     <div class="gantt-todo-gantt-stats" id="gantt-stats">加载中...</div>
@@ -596,8 +622,9 @@
             <tr>
               <th class="col-index" data-sort="index"># <span class="sort-arrow"></span></th>
               <th class="col-check" data-sort="done">状态</th>
-              <th class="col-content" data-sort="text">任务内容 <span class="sort-arrow"></span></th>
-              <th class="col-priority" data-sort="priority">优先级 <span class="sort-arrow"></span></th>
+<th class="col-content" data-sort="text">任务内容 <span class="sort-arrow"></span></th>
+            <th class="col-note" data-sort="noteTitle">所属笔记 <span class="sort-arrow"></span></th>
+            <th class="col-priority" data-sort="priority">优先级 <span class="sort-arrow"></span></th>
               <th class="col-date" data-sort="startDate">开始时间 <span class="sort-arrow"></span></th>
               <th class="col-date" data-sort="endDate">截止时间 <span class="sort-arrow"></span></th>
             </tr>
@@ -617,8 +644,9 @@
             <tr>
               <th class="col-index">#</th>
               <th class="col-check">状态</th>
-              <th class="col-content">任务内容</th>
-              <th class="col-priority">优先级</th>
+<th class="col-content">任务内容</th>
+            <th class="col-note">所属笔记</th>
+            <th class="col-priority">优先级</th>
               <th class="col-date">开始时间</th>
               <th class="col-date">截止时间</th>
             </tr>

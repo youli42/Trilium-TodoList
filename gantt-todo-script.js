@@ -195,12 +195,18 @@ async function runBackendAction(action, payload) {
             return { success: true, noteId: r.note.noteId };
         }
         if (backendAction === "readConfig") {
-            var curNote = api.currentNote || (api.startNote && api.startNote());
-            var myId = curNote ? curNote.noteId : "";
-            var parents = curNote ? curNote.getParentNotes() : [];
+            var sid = backendPayload && backendPayload.noteId ? backendPayload.noteId : "";
+            var sn = sid ? api.getNote(sid) : null;
+            if (!sn) return { scope: "", refreshInterval: 30, historyRetention: 0, showOverdueFirst: true };
+            var parents = sn.getParentNotes();
             var tmplId = parents && parents.length > 0 ? parents[0].noteId : "";
-            var renderNotes = tmplId ? api.searchForNotes('~renderNote = "' + tmplId + '"') : [];
+            var renderNotes = tmplId ? api.searchForNotes('#renderNote = "' + tmplId + '"') : [];
             var rn = renderNotes && renderNotes.length > 0 ? renderNotes[0] : null;
+            if (!rn) {
+                /* Fallback: try searching with ~ prefix */
+                renderNotes = tmplId ? api.searchForNotes('~renderNote = "' + tmplId + '"') : [];
+                rn = renderNotes && renderNotes.length > 0 ? renderNotes[0] : null;
+            }
             if (!rn) return { scope: "", refreshInterval: 30, historyRetention: 0, showOverdueFirst: true };
             return {
                 scope: rn.getLabelValue('scope') || "",
@@ -221,7 +227,8 @@ var CACHED_CONFIG = null;
 async function readConfig() {
     if (CACHED_CONFIG) return CACHED_CONFIG;
     try {
-        var cfg = await runBackendAction("readConfig", {});
+        var noteId = api.currentNote ? api.currentNote.noteId : "";
+        var cfg = await runBackendAction("readConfig", { noteId: noteId });
         CACHED_CONFIG = cfg;
         return cfg;
     } catch (e) { return { scope: "", refreshInterval: 30, historyRetention: 0, showOverdueFirst: true }; }

@@ -262,13 +262,21 @@ async function readConfig() {
         return cfg;
     } catch (e) { return { scope: "", refreshInterval: 30, historyRetention: 0, showOverdueFirst: true }; }
 }
+function sortCmp(a, b, asc) {
+    if (a === b) return 0;
+    if (a == null || a === "") return 1;
+    if (b == null || b === "") return -1;
+    var cmp = typeof a === "string" && typeof b === "string" ? a.localeCompare(b) : (a < b ? -1 : a > b ? 1 : 0);
+    return asc ? cmp : -cmp;
+}
+
 var SORT_COLUMNS = {
     index: { get: function(t) { return t.taskIndexInNote || 0; } },
     text: { get: function(t) { return (t.text || "").toLowerCase(); } },
     noteTitle: { get: function(t) { return (t.noteTitle || "").toLowerCase(); } },
     priority: { get: function(t) { return t.priority ? t.priority : 99; } },
-    startDate: { get: function(t) { return t.startDate || ""; } },
-    endDate: { get: function(t) { return t.endDate || ""; } }
+    startDate: { get: function(t) { return t.startDate || null; } },
+    endDate: { get: function(t) { return t.endDate || null; } }
 };
 
 function priorityClass(p) { return p ? "p" + p : ""; }
@@ -497,11 +505,7 @@ async function renderTaskList() {
     if (searchQuery) { var q = searchQuery.toLowerCase(); filtered = taskData.filter(function(t) { return (t.text || "").toLowerCase().indexOf(q) >= 0; }); }
     if (sortField && SORT_COLUMNS[sortField]) {
         var accessor = SORT_COLUMNS[sortField].get;
-        filtered = filtered.slice().sort(function(a, b) {
-            var va = accessor(a), vb = accessor(b);
-            var cmp = (typeof va === "string" && typeof vb === "string") ? va.localeCompare(vb) : (va < vb ? -1 : va > vb ? 1 : 0);
-            return sortAsc ? cmp : -cmp;
-        });
+        filtered = filtered.slice().sort(function(a, b) { return sortCmp(accessor(a), accessor(b), sortAsc); });
     }
     var pending = filtered.filter(function(t) { return !t.done; });
     var completed = filtered.filter(function(t) { return t.done; });

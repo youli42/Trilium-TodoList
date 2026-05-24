@@ -16,16 +16,19 @@ This plugin adds a **Gantt TODO Panel** to Trilium's frontend showcase page. It 
 - Click a bar to navigate to the source note
 - Progress bar reflects completion status
 - Automatically adapts to Trilium's light/dark theme
+- **Filter** — Filter tasks by source note
+- **Sort** — Sort by priority (high→low / low→high), start date, end date
+- **Hide done** — Toggle completed tasks visibility
 
 ![alt text](file/show.webp)
 
 ### Tab 2: Task List
 - **Filter** — Search tasks by text content
-- **Sort** — Click any column header (#, Status, Content, Priority, Start, End) to sort
+- **Sort** — Click any column header (#, Status, Content, Note, Priority, Start, End) to sort
 - **Pagination** — Adjustable page size (10/20/30/50/100)
 - **Checkbox toggle** — Check to complete, uncheck to restore
 - **Completed section** — Done tasks shown separately, can be undone
-- **Overdue priority** — Option to show overdue tasks first
+- **Note column** — Click note title to navigate to the source note
 
 ![alt text](file/showList.webp)
 

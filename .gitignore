@@ -1,0 +1,6 @@
+# Sisyphus workspace
+.sisyphus/
+
+# OS files
+.DS_Store
+Thumbs.db

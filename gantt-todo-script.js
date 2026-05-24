@@ -331,8 +331,52 @@ function drawTodayLine(container) {
     if (!svg) return;
     var old = svg.querySelector(".gantt-today-line");
     if (old) old.remove();
+    var x = NaN;
+    /* Method 1: Frappe Gantt today-highlight (works in Day view) */
     var hl = svg.querySelector(".today-highlight");
-    var x = hl ? parseFloat(hl.getAttribute("x")) : NaN;
+    if (hl) x = parseFloat(hl.getAttribute("x"));
+    /* Method 2: Find tick label matching today's day-of-month */
+    if (isNaN(x) || x <= 0) {
+        var now = new Date(), dayNum = now.getDate();
+        var ticks = svg.querySelectorAll(".tick");
+        for (var i = 0; i < ticks.length; i++) {
+            if (parseInt(ticks[i].textContent, 10) === dayNum) {
+                x = parseFloat(ticks[i].getAttribute("x"));
+                break;
+            }
+        }
+    }
+    /* Method 3: Year view — match month name in tick labels */
+    if (isNaN(x) || x <= 0) {
+        var m = new Date().getMonth();
+        var names = ["一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月",
+                     "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        var target = names[m];
+        var ticks2 = svg.querySelectorAll(".tick");
+        for (var j = 0; j < ticks2.length; j++) {
+            if ((ticks2[j].textContent || "").indexOf(target) >= 0) {
+                x = parseFloat(ticks2[j].getAttribute("x"));
+                break;
+            }
+        }
+    }
+    /* Method 4: Proportional fallback from first/last tick */
+    if (isNaN(x) || x <= 0) {
+        var allTicks = svg.querySelectorAll(".tick");
+        if (allTicks.length >= 2) {
+            var fx = parseFloat(allTicks[0].getAttribute("x"));
+            var lx = parseFloat(allTicks[allTicks.length - 1].getAttribute("x"));
+            if (!isNaN(fx) && !isNaN(lx) && lx > fx) {
+                var now3 = new Date(), totalD = 365;
+                if (currentView === "Month") totalD = new Date(now3.getFullYear(), now3.getMonth() + 1, 0).getDate();
+                else if (currentView === "Week") totalD = 7;
+                else if (currentView === "Day") totalD = 5;
+                var doy = Math.floor((now3 - new Date(now3.getFullYear(), 0, 0)) / 86400000);
+                if (currentView === "Year") x = fx + (doy / 365) * (lx - fx);
+                else if (currentView === "Month") x = fx + ((now3.getDate() - 1) / totalD) * (lx - fx);
+            }
+        }
+    }
     if (!isNaN(x) && x > 0) {
         var line = document.createElementNS("http://www.w3.org/2000/svg", "line");
         line.setAttribute("x1", x); line.setAttribute("y1", "0");
@@ -343,6 +387,7 @@ function drawTodayLine(container) {
         line.setAttribute("class", "gantt-today-line");
         svg.insertBefore(line, svg.firstChild);
     }
+}
 }
 
 function renderGantt() {

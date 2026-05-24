@@ -341,7 +341,7 @@ function drawTodayLine(container) {
             var lX = parseFloat(ticks[ticks.length - 1].getAttribute("x"));
             if (!isNaN(fX) && !isNaN(lX) && lX > fX) {
                 var now = new Date(), idx = -1, n = ticks.length;
-                if (currentView === "Year") idx = now.getMonth();
+                if (currentView === "Year") { var sy = new Date(now.getFullYear(),0,0); idx = Math.floor((now - sy) / 86400000) - 1; }
                 else if (currentView === "Month") idx = now.getDate() - 1;
                 else if (currentView === "Week") { var d = now.getDay(); idx = d === 0 ? 6 : d - 1; }
                 else {

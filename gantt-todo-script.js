@@ -198,14 +198,26 @@ async function runBackendAction(action, payload) {
             var sid = backendPayload && backendPayload.noteId ? backendPayload.noteId : "";
             var sn = sid ? api.getNote(sid) : null;
             if (!sn) return { scope: "", refreshInterval: 30, historyRetention: 0, showOverdueFirst: true };
-            var parents = sn.getParentNotes();
-            var tmplId = parents && parents.length > 0 ? parents[0].noteId : "";
-            var renderNotes = tmplId ? api.searchForNotes('#renderNote = "' + tmplId + '"') : [];
-            var rn = renderNotes && renderNotes.length > 0 ? renderNotes[0] : null;
-            if (!rn) {
-                /* Fallback: try searching with ~ prefix */
-                renderNotes = tmplId ? api.searchForNotes('~renderNote = "' + tmplId + '"') : [];
-                rn = renderNotes && renderNotes.length > 0 ? renderNotes[0] : null;
+            var p = sn.getParentNotes();
+            var tmpl = p && p.length > 0 ? p[0] : null;
+            if (!tmpl) return { scope: "", refreshInterval: 30, historyRetention: 0, showOverdueFirst: true };
+            var tmplId = tmpl.noteId;
+            /* Find render note by checking siblings of template that have ~renderNote → template */
+            var rn = null;
+            var gp = tmpl.getParentNotes();
+            var grandparent = gp && gp.length > 0 ? gp[0] : null;
+            if (grandparent) {
+                var siblings = grandparent.getChildNotes();
+                for (var si = 0; si < siblings.length; si++) {
+                    var rels = siblings[si].getRelations();
+                    for (var ri = 0; ri < rels.length; ri++) {
+                        if (rels[ri].name === "renderNote" && rels[ri].value === tmplId) {
+                            rn = siblings[si];
+                            break;
+                        }
+                    }
+                    if (rn) break;
+                }
             }
             if (!rn) return { scope: "", refreshInterval: 30, historyRetention: 0, showOverdueFirst: true };
             return {

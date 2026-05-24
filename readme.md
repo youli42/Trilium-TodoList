@@ -17,6 +17,8 @@ This plugin adds a **Gantt TODO Panel** to Trilium's frontend showcase page. It 
 - Progress bar reflects completion status
 - Automatically adapts to Trilium's light/dark theme
 
+![alt text](file/show.webp)
+
 ### Tab 2: Task List
 - **Filter** — Search tasks by text content
 - **Sort** — Click any column header (#, Status, Content, Priority, Start, End) to sort
@@ -24,6 +26,8 @@ This plugin adds a **Gantt TODO Panel** to Trilium's frontend showcase page. It 
 - **Checkbox toggle** — Check to complete, uncheck to restore
 - **Completed section** — Done tasks shown separately, can be undone
 - **Overdue priority** — Option to show overdue tasks first
+
+![alt text](file/showList.webp)
 
 ### Tab 3: Settings
 - **Collection Scope** — Specify which notes (IDs) to collect tasks from
@@ -65,14 +69,14 @@ If you have API access, the notes can be created programmatically (see the `.sis
 
 Tasks in notes use standard Trilium todo-list syntax with markers:
 
-| Syntax | Meaning | Example |
-|--------|---------|---------|
-| `#YYYY-MM-DD` | Due date (end date) | `#2026-05-28` |
-| `#S-YYYY-MM-DD` | Start date | `#S-2026-05-24` |
-| `#E-YYYY-MM-DD` | End date (explicit) | `#E-2026-06-01` |
-| `#P1` ~ `#P4` | Priority (1 highest, 4 lowest) | `#P1` |
-| `#Follow-up` | Mark as follow-up | `#Follow-up` |
-| `#every n day/week/month` | Recurring task | `#every 1 day` |
+| Syntax                    | Meaning                        | Example         |
+| ------------------------- | ------------------------------ | --------------- |
+| `#YYYY-MM-DD`             | Due date (end date)            | `#2026-05-28`   |
+| `#S-YYYY-MM-DD`           | Start date                     | `#S-2026-05-24` |
+| `#E-YYYY-MM-DD`           | End date (explicit)            | `#E-2026-06-01` |
+| `#P1` ~ `#P4`             | Priority (1 highest, 4 lowest) | `#P1`           |
+| `#Follow-up`              | Mark as follow-up              | `#Follow-up`    |
+| `#every n day/week/month` | Recurring task                 | `#every 1 day`  |
 
 Example:
 ```markdown
@@ -125,16 +129,16 @@ User opens panel → init() → cacheDom() → loadTasks()
 
 ### API Usage
 
-| API | Purpose |
-|-----|---------|
+| API                                | Purpose                                                  |
+| ---------------------------------- | -------------------------------------------------------- |
 | `api.runOnBackend(callback, args)` | Execute backend operations (task collection, completion) |
-| `api.getNote(noteId)` | Fetch a note by ID (backend) |
-| `api.dayjs()` | Date parsing and formatting (backend) |
-| `api.cheerio.load(html)` | Parse note HTML content (backend) |
-| `Buffer.isBuffer(content)` | Handle binary note content (backend) |
-| `api.activateNote(noteId)` | Navigate to source note on bar/card click |
-| `localStorage` | Store settings (frontend) |
-| `api.searchForNotes(query)` | Search notes by type (fallback) |
+| `api.getNote(noteId)`              | Fetch a note by ID (backend)                             |
+| `api.dayjs()`                      | Date parsing and formatting (backend)                    |
+| `api.cheerio.load(html)`           | Parse note HTML content (backend)                        |
+| `Buffer.isBuffer(content)`         | Handle binary note content (backend)                     |
+| `api.activateNote(noteId)`         | Navigate to source note on bar/card click                |
+| `localStorage`                     | Store settings (frontend)                                |
+| `api.searchForNotes(query)`        | Search notes by type (fallback)                          |
 
 ### Task Markers Parsing
 
@@ -148,13 +152,13 @@ The backend function `parseTaskMeta()` extracts structured data from task descri
 
 ### Files
 
-| File | Purpose |
-|------|---------|
-| `gantt-todo-template.html` | HTML template + CSS for the render note |
-| `gantt-todo-backend.js` | Backend module (task collection, parsing, completion, repeat) |
-| `gantt-todo-script.js` | Frontend module (UI rendering, events, settings) |
-| `readme.md` | This file (English) |
-| `readme_zh.md` | Chinese documentation |
+| File                       | Purpose                                                       |
+| -------------------------- | ------------------------------------------------------------- |
+| `gantt-todo-template.html` | HTML template + CSS for the render note                       |
+| `gantt-todo-backend.js`    | Backend module (task collection, parsing, completion, repeat) |
+| `gantt-todo-script.js`     | Frontend module (UI rendering, events, settings)              |
+| `readme.md`                | This file (English)                                           |
+| `readme_zh.md`             | Chinese documentation                                         |
 
 ### Dependencies
 

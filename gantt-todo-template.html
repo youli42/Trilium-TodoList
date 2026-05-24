@@ -1,0 +1,662 @@
+<!-- Trilium Gantt TODO Plugin - Template HTML (v1.0) -->
+<!-- Frappe Gantt CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.css">
+
+<style>
+  /* ===== Gantt TODO App Shell ===== */
+  #gantt-todo-app {
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 12px 16px;
+    color: var(--main-text-color);
+    line-height: 1.45;
+  }
+
+  /* ===== Tab Navigation ===== */
+  .gantt-todo-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    padding: 3px;
+    border: 1px solid rgba(128,128,128,0.2);
+    border-radius: 10px;
+    background: rgba(128,128,128,0.06);
+    margin-bottom: 16px;
+  }
+
+  .gantt-todo-tab {
+    border: 1px solid transparent;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--main-text-color);
+    cursor: pointer;
+    padding: 10px 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+    font-family: inherit;
+  }
+
+  .gantt-todo-tab:hover {
+    background: rgba(128,128,128,0.08);
+  }
+
+  .gantt-todo-tab.is-active {
+    border-color: rgba(220, 76, 62, 0.4);
+    background: var(--main-background-color);
+    color: #dc4c3e;
+  }
+
+  /* ===== Common Panel ===== */
+  .gantt-todo-panel {
+    display: none;
+  }
+
+  .gantt-todo-panel.is-active {
+    display: block;
+  }
+
+  .gantt-todo-loading {
+    text-align: center;
+    padding: 40px 24px;
+    opacity: 0.4;
+    font-size: 14px;
+  }
+
+  .gantt-todo-error {
+    padding: 12px 16px;
+    border: 1px solid rgba(220, 76, 62, 0.4);
+    border-radius: 8px;
+    color: #dc4c3e;
+    background: rgba(220, 76, 62, 0.06);
+    margin-bottom: 12px;
+  }
+
+  .gantt-todo-empty {
+    text-align: center;
+    padding: 40px 24px;
+    opacity: 0.4;
+    font-size: 14px;
+  }
+
+  /* ===== Gantt View ===== */
+  #gantt-todo-gantt-container {
+    width: 100%;
+    overflow-x: auto;
+    min-height: 300px;
+  }
+
+  #gantt-todo-gantt-container svg {
+    max-width: none;
+  }
+
+  .gantt-todo-gantt-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .gantt-todo-gantt-header h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .gantt-todo-gantt-controls {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .gantt-todo-gantt-controls button {
+    font-size: 12px;
+    padding: 5px 12px;
+    border: 1px solid rgba(128,128,128,0.2);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--main-text-color);
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+
+  .gantt-todo-gantt-controls button:hover {
+    background: rgba(128,128,128,0.08);
+  }
+
+  .gantt-todo-gantt-controls button.is-active {
+    background: rgba(128,128,128,0.12);
+    border-color: rgba(128,128,128,0.35);
+  }
+
+  .gantt-todo-gantt-stats {
+    font-size: 12px;
+    opacity: 0.5;
+    margin-bottom: 12px;
+  }
+
+  /* ===== Task List View ===== */
+  .gantt-todo-search-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .gantt-todo-search-bar input[type="text"] {
+    flex: 1;
+    font-size: 13px;
+    padding: 8px 12px;
+    border: 1px solid rgba(128,128,128,0.25);
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    outline: none;
+  }
+
+  .gantt-todo-search-bar input[type="text"]:focus {
+    border-color: rgba(128,128,128,0.5);
+  }
+
+  .gantt-todo-search-bar button {
+    font-size: 12px;
+    padding: 8px 16px;
+    border: 1px solid rgba(128,128,128,0.2);
+    border-radius: 6px;
+    background: rgba(128,128,128,0.08);
+    color: inherit;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+
+  .gantt-todo-search-bar button:hover {
+    background: rgba(128,128,128,0.16);
+  }
+
+  .gantt-todo-table-wrap {
+    overflow-x: auto;
+    margin-bottom: 12px;
+  }
+
+  .gantt-todo-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .gantt-todo-table th {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(128,128,128,0.15);
+    font-weight: 600;
+    font-size: 12px;
+    opacity: 0.7;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    transition: opacity 0.12s;
+  }
+
+  .gantt-todo-table th:hover {
+    opacity: 1;
+  }
+
+  .gantt-todo-table th .sort-arrow {
+    margin-left: 3px;
+    opacity: 0.4;
+  }
+
+  .gantt-todo-table th.is-sorted .sort-arrow {
+    opacity: 1;
+  }
+
+  .gantt-todo-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid rgba(128,128,128,0.08);
+    vertical-align: middle;
+  }
+
+  .gantt-todo-table tr:hover td {
+    background: rgba(128,128,128,0.03);
+  }
+
+  .gantt-todo-table .col-index {
+    width: 36px;
+    text-align: center;
+    opacity: 0.4;
+  }
+
+  .gantt-todo-table .col-check {
+    width: 30px;
+    text-align: center;
+  }
+
+  .gantt-todo-table .col-content {
+    min-width: 160px;
+  }
+
+  .gantt-todo-table .col-priority {
+    width: 50px;
+    text-align: center;
+  }
+
+  .gantt-todo-table .col-date {
+    width: 90px;
+    white-space: nowrap;
+  }
+
+  .gantt-todo-task-text {
+    cursor: pointer;
+    transition: color 0.12s;
+  }
+
+  .gantt-todo-task-text:hover {
+    color: #dc4c3e;
+  }
+
+  .gantt-todo-note-path {
+    font-size: 10px;
+    opacity: 0.4;
+    margin-top: 2px;
+  }
+
+  /* Checkbox in table */
+  .gantt-todo-check-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+  }
+
+  .gantt-todo-check-wrap input[type="checkbox"] {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2;
+  }
+
+  .gantt-todo-checkmark {
+    display: inline-flex;
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid rgba(128,128,128,0.4);
+    border-radius: 999px;
+    background: transparent;
+    transition: border-color 120ms ease, background-color 120ms ease;
+  }
+
+  .gantt-todo-check-wrap input:checked + .gantt-todo-checkmark {
+    border-color: #6bb86b;
+    background: #6bb86b;
+  }
+
+  .gantt-todo-check-wrap input:checked + .gantt-todo-checkmark::after {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 2px;
+    width: 4px;
+    height: 8px;
+    border: solid #ffffff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .gantt-todo-check-wrap input:hover + .gantt-todo-checkmark {
+    border-color: #dc4c3e;
+  }
+
+  /* Priority badges */
+  .gantt-todo-priority {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .gantt-todo-priority.p1 {
+    background: rgba(220, 76, 62, 0.12);
+    color: #d1453b;
+  }
+
+  .gantt-todo-priority.p2 {
+    background: rgba(255, 152, 0, 0.12);
+    color: #ad6200;
+  }
+
+  .gantt-todo-priority.p3 {
+    background: rgba(33, 150, 243, 0.12);
+    color: #246fe0;
+  }
+
+  .gantt-todo-priority.p4 {
+    background: rgba(128,128,128,0.08);
+    color: #6b7280;
+  }
+
+  /* Repeat badge */
+  .gantt-todo-repeat-badge {
+    display: inline-block;
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: rgba(128,128,128,0.08);
+    opacity: 0.6;
+    margin-left: 4px;
+  }
+
+  /* Section headers */
+  .gantt-todo-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    padding: 12px 0 6px;
+    margin-top: 8px;
+    border-top: 1px solid rgba(128,128,128,0.1);
+  }
+
+  .gantt-todo-section-title:first-child {
+    border-top: none;
+    margin-top: 0;
+  }
+
+  /* ===== Pagination ===== */
+  .gantt-todo-pagination {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    font-size: 13px;
+    opacity: 0.6;
+    flex-wrap: wrap;
+  }
+
+  .gantt-todo-pagination button {
+    font-size: 12px;
+    padding: 4px 10px;
+    border: 1px solid rgba(128,128,128,0.2);
+    border-radius: 4px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.12s;
+  }
+
+  .gantt-todo-pagination button:hover {
+    background: rgba(128,128,128,0.08);
+  }
+
+  .gantt-todo-pagination button:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .gantt-todo-pagination select {
+    font-size: 12px;
+    padding: 3px 6px;
+    border: 1px solid rgba(128,128,128,0.2);
+    border-radius: 4px;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  /* ===== Settings View ===== */
+  .gantt-todo-settings-form {
+    max-width: 500px;
+  }
+
+  .gantt-todo-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .gantt-todo-field label {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .gantt-todo-field input[type="text"],
+  .gantt-todo-field input[type="number"],
+  .gantt-todo-field select {
+    font-size: 13px;
+    padding: 8px 10px;
+    border: 1px solid rgba(128,128,128,0.25);
+    border-radius: 6px;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    outline: none;
+  }
+
+  .gantt-todo-field input:focus {
+    border-color: rgba(128,128,128,0.5);
+  }
+
+  .gantt-todo-field .hint {
+    font-size: 11px;
+    opacity: 0.5;
+    line-height: 1.4;
+  }
+
+  .gantt-todo-checkbox-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    font-size: 13px;
+  }
+
+  .gantt-todo-checkbox-field input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+  }
+
+  .gantt-todo-settings-actions {
+    display: flex;
+    gap: 8px;
+    padding-top: 8px;
+  }
+
+  .gantt-todo-settings-actions button {
+    font-size: 13px;
+    padding: 8px 20px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    transition: background 0.15s;
+  }
+
+  .gantt-todo-btn-primary {
+    background: #dc4c3e;
+    color: #fff;
+    border-color: #dc4c3e;
+  }
+
+  .gantt-todo-btn-primary:hover {
+    background: #c93d2f;
+  }
+
+  .gantt-todo-btn-secondary {
+    border-color: rgba(128,128,128,0.25);
+    background: transparent;
+    color: inherit;
+  }
+
+  .gantt-todo-btn-secondary:hover {
+    background: rgba(128,128,128,0.08);
+  }
+
+  .gantt-todo-btn-small {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+
+  .gantt-todo-saved-msg {
+    font-size: 12px;
+    color: #6bb86b;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .gantt-todo-saved-msg.show {
+    opacity: 1;
+  }
+
+  /* Frappe Gantt overrides for dark theme */
+  .gantt { --gantt-header-bg-color: transparent; --gantt-grid-bg-color: transparent; --gantt-row-height: 36px; }
+  .gantt svg { background: transparent; }
+  .gantt .grid-header { fill: rgba(128,128,128,0.06); }
+  .gantt .grid-header text, .gantt .grid-header text * { fill: var(--main-text-color) !important; font-size: 13px !important; font-weight: 600 !important; }
+  .gantt .grid-row { fill: transparent; }
+  .gantt .grid-row:nth-child(even) { fill: rgba(128,128,128,0.03); }
+  .gantt .row-line { stroke: var(--main-border-color); stroke-opacity: 0.3; }
+  .gantt .tick { stroke: var(--main-border-color); stroke-opacity: 0.15; }
+  .gantt .today-highlight { fill: rgba(220,76,62,0.2); }
+  .gantt .bar { fill: #dc4c3e; transition: fill 0.15s; }
+  .gantt .bar-progress { fill: #c93d2f; }
+  .gantt .bar-label { font-size: 11px; fill: #fff; font-weight: 500; }
+  .gantt .bar-label.big { font-size: 12px; fill: #fff; }
+  .gantt .bar-wrapper:hover .bar { fill: #e05a4c; }
+  .gantt .bar-wrapper.gantt-task-complete .bar { fill: #6bb86b; }
+  .gantt .bar-wrapper.gantt-task-complete .bar-progress { fill: #5a9e5a; }
+  .gantt .arrow { stroke: var(--main-text-color); stroke-opacity: 0.3; }
+  .gantt text, .gantt tspan { fill: var(--main-text-color) !important; font-size: 12px; }
+  .gantt text.gantt-task-text, .gantt text.gantt-task-text * { fill: #fff !important; }
+  .gantt .gantt-month-header { fill: var(--accented-background-color); }
+  .gantt .gantt-month-header text, .gantt .gantt-month-header text * { fill: var(--main-text-color) !important; font-size: 13px !important; font-weight: 700 !important; }
+
+  @media (max-width: 700px) {
+    #gantt-todo-app {
+      padding: 8px 10px;
+    }
+    .gantt-todo-table .col-date {
+      width: auto;
+    }
+  }
+</style>
+
+<div id="gantt-todo-app">
+  <!-- Tab Navigation -->
+  <div class="gantt-todo-tabs">
+    <button class="gantt-todo-tab is-active" data-tab="gantt">甘特图</button>
+    <button class="gantt-todo-tab" data-tab="list">任务列表</button>
+    <button class="gantt-todo-tab" data-tab="settings">设置</button>
+  </div>
+
+  <!-- Gantt View -->
+  <div class="gantt-todo-panel is-active" data-panel="gantt">
+    <div class="gantt-todo-gantt-header">
+      <h2>甘特图</h2>
+      <div class="gantt-todo-gantt-controls">
+        <button data-view="Day" class="is-active">日</button>
+        <button data-view="Week">周</button>
+        <button data-view="Month">月</button>
+        <button data-view="Year">年</button>
+      </div>
+    </div>
+    <div class="gantt-todo-gantt-stats" id="gantt-stats">加载中...</div>
+    <div id="gantt-todo-gantt-container">
+      <div class="gantt-todo-loading">甘特图加载中...</div>
+    </div>
+  </div>
+
+  <!-- Task List View -->
+  <div class="gantt-todo-panel" data-panel="list">
+    <div class="gantt-todo-search-bar">
+      <input type="text" id="task-search-input" placeholder="搜索任务内容..." spellcheck="false">
+      <button id="task-search-btn">搜索</button>
+    </div>
+
+    <div id="pending-tasks-section">
+      <div class="gantt-todo-section-title">待办任务</div>
+      <div id="pending-tasks-meta"></div>
+      <div class="gantt-todo-table-wrap">
+        <table class="gantt-todo-table" id="pending-tasks-table">
+          <thead>
+            <tr>
+              <th class="col-index" data-sort="index"># <span class="sort-arrow"></span></th>
+              <th class="col-check" data-sort="done">状态</th>
+              <th class="col-content" data-sort="text">任务内容 <span class="sort-arrow"></span></th>
+              <th class="col-priority" data-sort="priority">优先级 <span class="sort-arrow"></span></th>
+              <th class="col-date" data-sort="startDate">开始时间 <span class="sort-arrow"></span></th>
+              <th class="col-date" data-sort="endDate">截止时间 <span class="sort-arrow"></span></th>
+            </tr>
+          </thead>
+          <tbody id="pending-tasks-body"></tbody>
+        </table>
+      </div>
+      <div class="gantt-todo-pagination" id="pending-pagination"></div>
+    </div>
+
+    <div id="completed-tasks-section">
+      <div class="gantt-todo-section-title">已完成任务</div>
+      <div id="completed-tasks-meta"></div>
+      <div class="gantt-todo-table-wrap">
+        <table class="gantt-todo-table" id="completed-tasks-table">
+          <thead>
+            <tr>
+              <th class="col-index">#</th>
+              <th class="col-check">状态</th>
+              <th class="col-content">任务内容</th>
+              <th class="col-priority">优先级</th>
+              <th class="col-date">开始时间</th>
+              <th class="col-date">截止时间</th>
+            </tr>
+          </thead>
+          <tbody id="completed-tasks-body"></tbody>
+        </table>
+      </div>
+      <div class="gantt-todo-pagination" id="completed-pagination"></div>
+    </div>
+  </div>
+
+  <!-- Settings View -->
+  <div class="gantt-todo-panel" data-panel="settings">
+    <h2 style="font-size:16px;font-weight:700;margin:0 0 16px;">设置</h2>
+    <div class="gantt-todo-settings-form">
+      <div class="gantt-todo-field">
+        <label for="setting-scope">任务收集范围（笔记ID，多个用空格分隔）</label>
+        <input type="text" id="setting-scope" placeholder="留空表示收集所有笔记">
+        <div class="hint">指定从哪些笔记及其子笔记中收集TODO任务。留空则从所有笔记中收集。</div>
+      </div>
+      <div class="gantt-todo-field">
+        <label for="setting-refresh">自动刷新间隔（秒）</label>
+        <input type="number" id="setting-refresh" min="5" step="5" value="30">
+        <div class="hint">自动刷新甘特图和任务列表数据。最小5秒。</div>
+      </div>
+      <div class="gantt-todo-field">
+        <label for="setting-history">重复任务历史保留数量</label>
+        <input type="number" id="setting-history" min="0" step="1" value="0">
+        <div class="hint">0表示保留全部历史记录。设置后只保留头尾记录，中间折叠。</div>
+      </div>
+      <div class="gantt-todo-checkbox-field">
+        <input type="checkbox" id="setting-show-overdue">
+        <label for="setting-show-overdue">在待办列表中优先显示过期任务</label>
+      </div>
+      <div class="gantt-todo-settings-actions">
+        <button class="gantt-todo-btn-primary" id="settings-save-btn">保存设置</button>
+        <span class="gantt-todo-saved-msg" id="settings-saved-msg">✓ 已保存</span>
+      </div>
+    </div>
+  </div>
+</div>

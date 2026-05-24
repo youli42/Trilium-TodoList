@@ -57,8 +57,9 @@ Gantt TODO (render type)
 5. Copy the contents of `gantt-todo-script.js` into the **GanttTodoScript** note
 6. Set the `~renderNote` relation on the **Gantt TODO** note pointing to **GanttTodoTemplate**
 
-### Option 2: Use Trilium API
-If you have API access, the notes can be created programmatically (see the `.sisyphus/` directory for the build script).
+### Option 2: Download ZIP from Releases
+
+Download the latest release archive from [GitHub Releases](https://github.com/YuZhang/trilium-gantt-todo/releases) and import it into Trilium via `Import` → `Import from ZIP` to automatically create the full note structure.
 
 ## Usage
 

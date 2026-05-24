@@ -57,9 +57,9 @@ Gantt TODO（render 类型）
 5. 将 `gantt-todo-script.js` 的内容复制到 **GanttTodoScript** 笔记
 6. 为 **Gantt TODO** 笔记设置 `~renderNote` 关系指向 **GanttTodoTemplate**
 
-### 方式二：通过 API 创建
+### 方式二：发布页面下载压缩包并导入
 
-如有 Trilium API 访问权限，可通过脚本方式创建（参见 `.sisyphus/` 目录下的构建记录）。
+从 [GitHub Releases](https://github.com/YuZhang/trilium-gantt-todo/releases) 页面下载最新版压缩包，在 Trilium 中通过 `导入` → `从 ZIP 文件导入` 导入即可自动创建完整笔记结构。
 
 ## 使用方法
 

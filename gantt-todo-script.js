@@ -332,48 +332,31 @@ function drawTodayLine(container) {
     var old = svg.querySelector(".gantt-today-line");
     if (old) old.remove();
     var x = NaN;
-    /* Method 1: Frappe Gantt today-highlight (works in Day view) */
     var hl = svg.querySelector(".today-highlight");
     if (hl) x = parseFloat(hl.getAttribute("x"));
-    /* Method 2: Find tick label matching today's day-of-month */
     if (isNaN(x) || x <= 0) {
-        var now = new Date(), dayNum = now.getDate();
         var ticks = svg.querySelectorAll(".tick");
-        for (var i = 0; i < ticks.length; i++) {
-            if (parseInt(ticks[i].textContent, 10) === dayNum) {
-                x = parseFloat(ticks[i].getAttribute("x"));
-                break;
-            }
-        }
-    }
-    /* Method 3: Year view — match month name in tick labels */
-    if (isNaN(x) || x <= 0) {
-        var m = new Date().getMonth();
-        var names = ["一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月",
-                     "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-        var target = names[m];
-        var ticks2 = svg.querySelectorAll(".tick");
-        for (var j = 0; j < ticks2.length; j++) {
-            if ((ticks2[j].textContent || "").indexOf(target) >= 0) {
-                x = parseFloat(ticks2[j].getAttribute("x"));
-                break;
-            }
-        }
-    }
-    /* Method 4: Proportional fallback from first/last tick */
-    if (isNaN(x) || x <= 0) {
-        var allTicks = svg.querySelectorAll(".tick");
-        if (allTicks.length >= 2) {
-            var fx = parseFloat(allTicks[0].getAttribute("x"));
-            var lx = parseFloat(allTicks[allTicks.length - 1].getAttribute("x"));
-            if (!isNaN(fx) && !isNaN(lx) && lx > fx) {
-                var now3 = new Date(), totalD = 365;
-                if (currentView === "Month") totalD = new Date(now3.getFullYear(), now3.getMonth() + 1, 0).getDate();
-                else if (currentView === "Week") totalD = 7;
-                else if (currentView === "Day") totalD = 5;
-                var doy = Math.floor((now3 - new Date(now3.getFullYear(), 0, 0)) / 86400000);
-                if (currentView === "Year") x = fx + (doy / 365) * (lx - fx);
-                else if (currentView === "Month") x = fx + ((now3.getDate() - 1) / totalD) * (lx - fx);
+        if (ticks.length >= 2) {
+            var fX = parseFloat(ticks[0].getAttribute("x"));
+            var lX = parseFloat(ticks[ticks.length - 1].getAttribute("x"));
+            if (!isNaN(fX) && !isNaN(lX) && lX > fX) {
+                var now = new Date(), idx = -1, n = ticks.length;
+                if (currentView === "Year") idx = now.getMonth();
+                else if (currentView === "Month") idx = now.getDate() - 1;
+                else if (currentView === "Week") { var d = now.getDay(); idx = d === 0 ? 6 : d - 1; }
+                else {
+                    var dayNum = now.getDate();
+                    for (var i = 0; i < n; i++) {
+                        var m = (ticks[i].textContent || "").match(/\d+/g);
+                        if (m) { for (var j = 0; j < m.length; j++) {
+                            if (parseInt(m[j], 10) === dayNum) { idx = i; break; }
+                        }}
+                        if (idx >= 0) break;
+                    }
+                }
+                if (idx >= 0 && idx < n) {
+                    x = fX + (idx / (n - 1)) * (lX - fX);
+                }
             }
         }
     }

@@ -151,6 +151,17 @@
     opacity: 0.5;
     margin-bottom: 12px;
   }
+  .gantt-todo-filter-bar {
+    display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center;
+  }
+  .gantt-todo-filter-bar select {
+    font-size: 12px; padding: 4px 8px; border: 1px solid rgba(128,128,128,0.25);
+    border-radius: 5px; background: var(--main-background-color);
+    color: var(--main-text-color); font-family: inherit; cursor: pointer;
+  }
+  .gantt-todo-filter-bar select option {
+    background: var(--main-background-color); color: var(--main-text-color);
+  }
 
   /* ===== Task List View ===== */
   .gantt-todo-search-bar {
@@ -606,6 +617,16 @@
       </div>
     </div>
     <div class="gantt-todo-gantt-stats" id="gantt-stats">加载中...</div>
+    <div class="gantt-todo-filter-bar" id="gantt-filter-bar" style="display:none">
+      <select id="gantt-filter-note"><option value="all">全部笔记</option></select>
+      <select id="gantt-sort-by">
+        <option value="">默认排序</option>
+        <option value="priority-desc">优先级 (高→低)</option>
+        <option value="priority-asc">优先级 (低→高)</option>
+        <option value="startDate">开始时间</option>
+        <option value="endDate">截止时间</option>
+      </select>
+    </div>
     <div id="gantt-todo-gantt-container">
       <div class="gantt-todo-loading">甘特图加载中...</div>
     </div>

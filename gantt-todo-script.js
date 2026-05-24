@@ -236,6 +236,8 @@ var searchQuery = "";
 var autoRefreshTimer = null;
 var ganttInstance = null;
 var ganttHideDone = false;
+var ganttFilterNote = "all";
+var ganttSortBy = "";
 var isLoading = false;
 var lastLoadPromise = null;
 var dom = {};
@@ -312,11 +314,31 @@ function showEmptyScopeMessage() {
     dom.ganttContainer.innerHTML = "<div class=\"gantt-todo-empty\">请在设置页面中配置任务收集范围（笔记ID），例如: gXEI9kcMRw7F</div>";
 }
 
+function populateGanttFilters() {
+    var sel = document.getElementById("gantt-filter-note");
+    if (!sel || !taskData) return;
+    var currentVal = sel.value;
+    sel.innerHTML = "<option value=\"all\">全部笔记</option>";
+    var seen = {};
+    for (var i = 0; i < taskData.length; i++) {
+        var nid = taskData[i].noteId, title = taskData[i].noteTitle;
+        if (!seen[nid]) {
+            seen[nid] = true;
+            var opt = document.createElement("option");
+            opt.value = nid; opt.textContent = title;
+            sel.appendChild(opt);
+        }
+    }
+    sel.value = currentVal;
+    var fb = document.getElementById("gantt-filter-bar");
+    if (fb) fb.style.display = sel.options.length > 1 ? "" : "none";
+}
+
 function switchTab(tab) {
     currentTab = tab;
     dom.tabs.forEach(function(btn) { btn.classList.toggle("is-active", btn.dataset.tab === tab); });
     dom.panels.forEach(function(panel) { panel.classList.toggle("is-active", panel.dataset.panel === tab); });
-    if (tab === "gantt") { renderGantt(); } else if (tab === "list") { renderTaskList(); } else if (tab === "settings") renderSettings();
+    if (tab === "gantt") { populateGanttFilters(); renderGantt(); } else if (tab === "list") { renderTaskList(); } else if (tab === "settings") renderSettings();
 }
 
 function refreshStats() {
@@ -333,6 +355,18 @@ function renderGantt() {
     var container = dom.ganttContainer, statsEl = dom.ganttStats;
     var hideDone = document.getElementById("gantt-hide-done") ? document.getElementById("gantt-hide-done").checked : false;
   var sourceTasks = hideDone ? taskData.filter(function(t) { return !t.done; }) : taskData;
+    var filterNote = document.getElementById("gantt-filter-note") ? document.getElementById("gantt-filter-note").value : "all";
+    var sortBy = document.getElementById("gantt-sort-by") ? document.getElementById("gantt-sort-by").value : "";
+    if (filterNote !== "all") sourceTasks = sourceTasks.filter(function(t) { return t.noteId === filterNote; });
+    if (sortBy) {
+        sourceTasks = sourceTasks.slice().sort(function(a, b) {
+            if (sortBy === "priority-desc") return (a.priority || 99) - (b.priority || 99);
+            if (sortBy === "priority-asc") return (b.priority || 99) - (a.priority || 99);
+            if (sortBy === "startDate") return (a.startDate || "").localeCompare(b.startDate || "");
+            if (sortBy === "endDate") return (a.endDate || "").localeCompare(b.endDate || "");
+            return 0;
+        });
+    }
   var datedTasks = sourceTasks.filter(function(t) { return t.startDate || t.endDate; });
     if (datedTasks.length === 0) {
         container.innerHTML = "<div class=\"gantt-todo-empty\">没有带日期的任务</div>";
@@ -536,12 +570,6 @@ function init() {
     dom.pendingBody.addEventListener("click", function(e) { var el = e.target.closest(".gantt-todo-task-text, .col-note"); if (el) { if (el.classList.contains("col-note")) handleNoteClick(el); else handleTaskTextClick(el); } });
     dom.completedBody.addEventListener("click", function(e) { var el = e.target.closest(".gantt-todo-task-text, .col-note"); if (el) { if (el.classList.contains("col-note")) handleNoteClick(el); else handleTaskTextClick(el); } });
     dom.settingsSaveBtn.addEventListener("click", saveSettings);
-    var hideDoneCb = document.getElementById("gantt-hide-done");
-    if (hideDoneCb) {
-        hideDoneCb.addEventListener("change", function() {
-            if (currentTab === "gantt") renderGantt();
-        });
-    }
     var hideCb = document.getElementById("gantt-hide-done");
     if (hideCb) {
         hideCb.checked = localStorage.getItem("gantt_hide_done") === "true";
@@ -550,8 +578,13 @@ function init() {
             if (currentTab === "gantt") renderGantt();
         });
     }
+    var filterNoteSel = document.getElementById("gantt-filter-note");
+    var sortSel = document.getElementById("gantt-sort-by");
+    if (filterNoteSel) filterNoteSel.addEventListener("change", function() { if (currentTab === "gantt") renderGantt(); });
+    if (sortSel) sortSel.addEventListener("change", function() { if (currentTab === "gantt") renderGantt(); });
     renderSettings();
     loadTasks().then(function() {
+        populateGanttFilters();
         var s = readSettings();
         if (!s.scope && (!taskData || !taskData.length)) showEmptyScopeMessage();
         else { renderGantt(); if (currentTab === "list") renderTaskList(); }

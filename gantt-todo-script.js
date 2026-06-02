@@ -274,7 +274,7 @@ var SORT_COLUMNS = {
     index: { get: function(t) { return t.taskIndexInNote || 0; } },
     text: { get: function(t) { return (t.text || "").toLowerCase(); } },
     noteTitle: { get: function(t) { return (t.noteTitle || "").toLowerCase(); } },
-    priority: { get: function(t) { return t.priority ? t.priority : 99; } },
+    priority: { get: function(t) { return t.priority != null ? t.priority : null; } },
     startDate: { get: function(t) { return t.startDate || null; } },
     endDate: { get: function(t) { return t.endDate || null; } }
 };

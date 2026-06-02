@@ -204,6 +204,62 @@
     background: rgba(128,128,128,0.16);
   }
 
+  /* ===== Note Tag Filter Bar ===== */
+  .gantt-todo-note-tags {
+    display: flex;
+    gap: 6px;
+    padding: 6px 10px;
+    margin-bottom: 12px;
+    background: rgba(128,128,128,0.04);
+    border-radius: 8px;
+    overflow: hidden;
+    white-space: nowrap;
+    flex-wrap: nowrap;
+    position: relative;
+  }
+
+  .gantt-todo-note-tags::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 24px;
+    background: linear-gradient(to right, transparent, var(--main-background-color));
+    pointer-events: none;
+    opacity: 0.4;
+  }
+
+  .gantt-todo-note-tag {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 12px;
+    font-size: 12px;
+    border: 1px solid rgba(128,128,128,0.18);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--main-text-color);
+    cursor: pointer;
+    transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+    user-select: none;
+    font-family: inherit;
+    opacity: 0.65;
+  }
+
+  .gantt-todo-note-tag:hover {
+    opacity: 1;
+    background: rgba(128,128,128,0.08);
+    border-color: rgba(128,128,128,0.3);
+  }
+
+  .gantt-todo-note-tag.is-active {
+    opacity: 1;
+    background: rgba(220, 76, 62, 0.1);
+    border-color: rgba(220, 76, 62, 0.35);
+    color: #dc4c3e;
+  }
+
   .gantt-todo-table-wrap {
     overflow-x: auto;
     margin-bottom: 12px;
@@ -572,6 +628,8 @@
       <input type="text" id="task-search-input" placeholder="搜索任务内容..." spellcheck="false">
       <button id="task-search-btn">搜索</button>
     </div>
+
+    <div class="gantt-todo-note-tags" id="task-note-tags"></div>
 
     <div id="pending-tasks-section">
       <div class="gantt-todo-section-title">待办任务</div>

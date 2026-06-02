@@ -297,6 +297,7 @@ var pageSize = 20;
 var sortField = null;
 var sortAsc = true;
 var searchQuery = "";
+var noteFilterTag = null;
 var autoRefreshTimer = null;
 var ganttInstance = null;
 var ganttHideDone = false;
@@ -394,11 +395,28 @@ function populateGanttFilters() {
     if (fb) fb.style.display = sel.options.length > 1 ? "" : "none";
 }
 
+function populateNoteTags() {
+    var container = document.getElementById("task-note-tags");
+    if (!container || !taskData) return;
+    var seen = {}, notes = [];
+    for (var i = 0; i < taskData.length; i++) {
+        var nid = taskData[i].noteId, title = taskData[i].noteTitle;
+        if (!seen[nid]) { seen[nid] = true; notes.push({ id: nid, title: title }); }
+    }
+    if (notes.length <= 1) { container.style.display = "none"; return; }
+    container.style.display = "flex";
+    var html = "<button class=\"gantt-todo-note-tag" + (!noteFilterTag ? " is-active" : "") + "\" data-note-id=\"\">全部</button>";
+    for (var j = 0; j < notes.length; j++) {
+        html += "<button class=\"gantt-todo-note-tag" + (noteFilterTag === notes[j].id ? " is-active" : "") + "\" data-note-id=\"" + notes[j].id + "\">" + escHtml(notes[j].title) + "</button>";
+    }
+    container.innerHTML = html;
+}
+
 function switchTab(tab) {
     currentTab = tab;
     dom.tabs.forEach(function(btn) { btn.classList.toggle("is-active", btn.dataset.tab === tab); });
     dom.panels.forEach(function(panel) { panel.classList.toggle("is-active", panel.dataset.panel === tab); });
-    if (tab === "gantt") { populateGanttFilters(); renderGantt(); } else if (tab === "list") { renderTaskList(); }
+    if (tab === "gantt") { populateGanttFilters(); renderGantt(); } else if (tab === "list") { populateNoteTags(); renderTaskList(); }
 }
 
 function refreshStats() {
@@ -504,6 +522,7 @@ async function renderTaskList() {
     if (!taskData) return;
     var filtered = taskData;
     if (searchQuery) { var q = searchQuery.toLowerCase(); filtered = taskData.filter(function(t) { return (t.text || "").toLowerCase().indexOf(q) >= 0; }); }
+    if (noteFilterTag) { filtered = filtered.filter(function(t) { return t.noteId === noteFilterTag; }); }
     if (sortField && SORT_COLUMNS[sortField]) {
         var accessor = SORT_COLUMNS[sortField].get;
         filtered = filtered.slice().sort(function(a, b) { return sortCmp(accessor(a), accessor(b), sortAsc); });
@@ -612,6 +631,7 @@ async function reloadAll() {
     if (isLoading) return;
     try {
         await loadTasks();
+        populateNoteTags();
         if (currentTab === "gantt") renderGantt();
         else if (currentTab === "list") renderTaskList();
     } catch (err) { console.error("[GanttTodo] Reload failed:", err); if (currentTab === "gantt") dom.ganttContainer.innerHTML = "<div class=\"gantt-todo-error\">" + escHtml(err.message || "未知错误") + "</div>"; }
@@ -644,8 +664,19 @@ function init() {
     var sortSel = document.getElementById("gantt-sort-by");
     if (filterNoteSel) filterNoteSel.addEventListener("change", function() { if (currentTab === "gantt") renderGantt(); });
     if (sortSel) sortSel.addEventListener("change", function() { if (currentTab === "gantt") renderGantt(); });
+    document.getElementById("task-note-tags").addEventListener("click", function(e) {
+        var tag = e.target.closest(".gantt-todo-note-tag");
+        if (!tag) return;
+        var nid = tag.dataset.noteId;
+        if (noteFilterTag === nid) noteFilterTag = null;
+        else noteFilterTag = nid;
+        pendingPage = 1; completedPage = 1;
+        populateNoteTags();
+        renderTaskList();
+    });
     loadTasks().then(async function() {
         populateGanttFilters();
+        populateNoteTags();
         var cfg = await readConfig();
         if (!cfg.scope && (!taskData || !taskData.length)) showEmptyScopeMessage();
         else { renderGantt(); if (currentTab === "list") renderTaskList(); }

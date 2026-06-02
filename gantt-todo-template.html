@@ -234,23 +234,21 @@
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
-    padding: 3px 12px;
+    padding: 0;
     font-size: 12px;
     border: 1px solid rgba(128,128,128,0.18);
     border-radius: 999px;
     background: transparent;
     color: var(--main-text-color);
-    cursor: pointer;
-    transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+    cursor: default;
     user-select: none;
     font-family: inherit;
     opacity: 0.65;
+    overflow: hidden;
   }
 
   .gantt-todo-note-tag:hover {
     opacity: 1;
-    background: rgba(128,128,128,0.08);
-    border-color: rgba(128,128,128,0.3);
   }
 
   .gantt-todo-note-tag.is-active {
@@ -258,6 +256,42 @@
     background: rgba(220, 76, 62, 0.1);
     border-color: rgba(220, 76, 62, 0.35);
     color: #dc4c3e;
+  }
+
+  .gantt-todo-note-tag .tag-left {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 4px 3px 12px;
+    cursor: pointer;
+    transition: background 80ms ease;
+  }
+
+  .gantt-todo-note-tag .tag-left:hover {
+    background: rgba(128,128,128,0.08);
+  }
+  .gantt-todo-note-tag.is-active .tag-left:hover {
+    background: rgba(220, 76, 62, 0.15);
+  }
+
+  .gantt-todo-note-tag .tag-right {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 8px 3px 4px;
+    cursor: pointer;
+    font-size: 10px;
+    opacity: 0.5;
+    transition: background 80ms ease, opacity 80ms ease;
+    border-left: 1px solid rgba(128,128,128,0.12);
+    margin-left: 2px;
+  }
+
+  .gantt-todo-note-tag .tag-right:hover {
+    opacity: 1;
+    background: rgba(128,128,128,0.08);
+  }
+  .gantt-todo-note-tag.is-active .tag-right:hover {
+    background: rgba(220, 76, 62, 0.15);
   }
 
   .gantt-todo-table-wrap {

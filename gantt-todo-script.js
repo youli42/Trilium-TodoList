@@ -297,7 +297,7 @@ var pageSize = 20;
 var sortField = null;
 var sortAsc = true;
 var searchQuery = "";
-var noteFilterTag = null;
+var noteFilterTags = [];
 var autoRefreshTimer = null;
 var ganttInstance = null;
 var ganttHideDone = false;
@@ -405,9 +405,11 @@ function populateNoteTags() {
     }
     if (notes.length <= 1) { container.style.display = "none"; return; }
     container.style.display = "flex";
-    var html = "<button class=\"gantt-todo-note-tag" + (!noteFilterTag ? " is-active" : "") + "\" data-note-id=\"\">全部</button>";
+    var allActive = noteFilterTags.length === 0;
+    var html = "<button class=\"gantt-todo-note-tag" + (allActive ? " is-active" : "") + "\" data-note-id=\"\"><span class=\"tag-left\">全部</span></button>";
     for (var j = 0; j < notes.length; j++) {
-        html += "<button class=\"gantt-todo-note-tag" + (noteFilterTag === notes[j].id ? " is-active" : "") + "\" data-note-id=\"" + notes[j].id + "\">" + escHtml(notes[j].title) + "</button>";
+        var active = !allActive && noteFilterTags.indexOf(notes[j].id) >= 0;
+        html += "<button class=\"gantt-todo-note-tag" + (active ? " is-active" : "") + "\" data-note-id=\"" + notes[j].id + "\"><span class=\"tag-left\">" + escHtml(notes[j].title) + "</span><span class=\"tag-right\">\u25C8</span></button>";
     }
     container.innerHTML = html;
 }
@@ -522,7 +524,7 @@ async function renderTaskList() {
     if (!taskData) return;
     var filtered = taskData;
     if (searchQuery) { var q = searchQuery.toLowerCase(); filtered = taskData.filter(function(t) { return (t.text || "").toLowerCase().indexOf(q) >= 0; }); }
-    if (noteFilterTag) { filtered = filtered.filter(function(t) { return t.noteId === noteFilterTag; }); }
+    if (noteFilterTags.length > 0) { filtered = filtered.filter(function(t) { return noteFilterTags.indexOf(t.noteId) >= 0; }); }
     if (sortField && SORT_COLUMNS[sortField]) {
         var accessor = SORT_COLUMNS[sortField].get;
         filtered = filtered.slice().sort(function(a, b) { return sortCmp(accessor(a), accessor(b), sortAsc); });
@@ -668,8 +670,13 @@ function init() {
         var tag = e.target.closest(".gantt-todo-note-tag");
         if (!tag) return;
         var nid = tag.dataset.noteId;
-        if (noteFilterTag === nid) noteFilterTag = null;
-        else noteFilterTag = nid;
+        if (!nid) { noteFilterTags = []; }
+        else if (e.target.classList.contains("tag-right")) { noteFilterTags = [nid]; }
+        else {
+            var idx = noteFilterTags.indexOf(nid);
+            if (idx >= 0) noteFilterTags.splice(idx, 1);
+            else noteFilterTags.push(nid);
+        }
         pendingPage = 1; completedPage = 1;
         populateNoteTags();
         renderTaskList();

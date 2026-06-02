@@ -428,7 +428,7 @@ function refreshStats() {
 
 async function renderGantt() {
     var settings = await readConfig();
-    if (!cfg.scope && (!taskData || !taskData.length)) { showEmptyScopeMessage(); return; }
+    if (!settings.scope && (!taskData || !taskData.length)) { showEmptyScopeMessage(); return; }
     if (!taskData) return;
     var container = dom.ganttContainer, statsEl = dom.ganttStats;
     var hideDone = document.getElementById("gantt-hide-done") ? document.getElementById("gantt-hide-done").checked : false;
@@ -518,7 +518,7 @@ function setGanttView(view) {
 
 async function renderTaskList() {
     var settings = await readConfig();
-    if (!cfg.scope && (!taskData || !taskData.length)) { showEmptyScopeMessage(); return; }
+    if (!settings.scope && (!taskData || !taskData.length)) { showEmptyScopeMessage(); return; }
     if (!taskData) return;
     var filtered = taskData;
     if (searchQuery) { var q = searchQuery.toLowerCase(); filtered = taskData.filter(function(t) { return (t.text || "").toLowerCase().indexOf(q) >= 0; }); }

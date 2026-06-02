@@ -453,7 +453,7 @@ async function renderGantt() {
     }
     var ganttTasks = datedTasks.map(function(t) {
         var start = t.startDate || "", end = t.endDate || "";
-        if (!start && end) { var d = new Date(end); d.setDate(d.getDate() - 1); start = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+        if (!start && end) { start = end; }
         if (start && !end) end = start;
         if (!start || !end) return null;
         var barName = (t.priority ? "[P" + t.priority + "] " : "") + (t.text || "(empty)") + (t.noteTitle ? " \u00b7 " + t.noteTitle : "");
